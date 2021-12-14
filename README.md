@@ -1,2 +1,1 @@
-# BayesRGMM
-# BayesRGMM
+To perform model estimation using MCMC algorithms with Bayesian methods for incomplete longitudinal studies on binary and ordinal outcomes that are measured repeatedly on subjects over time with drop-outs.
