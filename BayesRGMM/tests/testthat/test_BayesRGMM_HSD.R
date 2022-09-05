@@ -7,6 +7,7 @@ test_that("A simulation study of HSD", {
 
 library(BayesRGMM)
 rm(list=ls(all=TRUE))
+Interactive = interactive()
 
 Fixed.Effs = c(-0.2, -0.3, 0.8, -0.4) #c(-0.2,-0.8, 1.0, -1.2)
 P = length(Fixed.Effs)
@@ -44,7 +45,8 @@ hyper.params = list(
 
 HSD.output = BayesRobustProbit(fixed = as.formula(paste("y~-1+", paste0("x", 1:P, collapse="+"))), 
 	data=HSD.sim.data$sim.data, random = ~ 1, Robustness = TRUE, HS.model = ~IndTime1+IndTime2, 
-	subset = NULL, na.action='na.exclude', hyper.params = hyper.params, num.of.iter = num.of.iter)
+	subset = NULL, na.action='na.exclude', hyper.params = hyper.params, num.of.iter = num.of.iter, 
+	Interactive = Interactive)
 
 original = options(digits = 4)
 Model.Estimation = BayesRobustProbitSummary(HSD.output)
