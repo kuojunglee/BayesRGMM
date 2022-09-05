@@ -1,7 +1,7 @@
 ---
 title: "BayesRGMM: Methodology and User Guide"
 author: "Kuo-Jung Lee at Deaprtment of Statistics and Institute of Data Science, NCKU, Taiwan"
-date: "2021 05 25"
+date: "2021 12 21"
 output: 
   bookdown::html_document2: default
   pdf_document:
@@ -288,12 +288,12 @@ hyper.params = list(
 
 HSD.output = BayesRobustProbit(fixed = as.formula(paste("y~-1+", 
              paste0("x", 1:P, collapse="+"))), data=HSD.sim.data$sim.data, 
-             random = ~ 1, HS.model = ~IndTime1+IndTime2, subset = NULL, 
+             random = ~ 1, HS.model = ~IndTime1+IndTime2, Robustness=TRUE, subset = NULL, 
              na.action='na.exclude', hyper.params = hyper.params, 
-             num.of.iter = num.of.iter)
+             num.of.iter = num.of.iter, Interactive = FALSE)
 
 original = options(digits = 4)
-Model.Estimation = BayesRobustProbitSummary(HSD.output)
+Model.Estimation = BayesRobustProbitSummary(HSD.output, burnin=0)
 
 cat("\nCoefficients:\n")
 print(Model.Estimation$beta.est.CI)
@@ -339,12 +339,12 @@ ARMA.sim.data = SimulatedDataGenerator(Num.of.Obs = N, Num.of.TimePoints = T,
 
 ARMA.output = BayesRobustProbit(fixed = as.formula(paste("y~-1+", 
   paste0("x", 1:P, collapse="+"))), data=ARMA.sim.data$sim.data, random = ~ 1, 
-  subset = NULL, na.action='na.exclude', arma.order = c(1, 1), 
-  num.of.iter = num.of.iter)
+  Robustness=TRUE, subset = NULL, na.action='na.exclude', arma.order = c(1, 1), 
+  num.of.iter = num.of.iter, Interactive = FALSE)
 
 original = options(digits = 4)
 
-Model.Estimation = BayesRobustProbitSummary(ARMA.output)
+Model.Estimation = BayesRobustProbitSummary(ARMA.output, burnin=0)
 
 cat("\nCoefficients:\n")
 print(Model.Estimation$beta.est.CI)
@@ -425,7 +425,7 @@ CPREM.sim.data = SimulatedDataGenerator.CumulativeProbit(Num.of.Obs = N,
     Num.of.TimePoints = T, Num.of.Cats = Num.of.Cats, Fixed.Effs = Fixed.Effs, 
     Random.Effs = list(Sigma = 0.5*diag(1), df=3), DesignMat = DesignMat, 
     Missing = list(Missing.Mechanism = 2, MissingRegCoefs=c(-0.7, -0.2, -0.1)), 
-    HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
+    HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w), CutPoints=NULL)
 
 
 print(table(CPREM.sim.data$sim.data$y))
@@ -436,10 +436,11 @@ BCP.output = BayesCumulativeProbitHSD(
     fixed = as.formula(paste("y~", paste0("x", 1:P, collapse="+"))), 
     data=CPREM.sim.data$sim.data, random = ~ 1, Robustness = TRUE, 
     subset = NULL, na.action='na.exclude', HS.model = ~IndTime1+IndTime2, 
-    hyper.params=NULL, num.of.iter=num.of.iter)
+    hyper.params=NULL, num.of.iter=num.of.iter, Interactive = FALSE)
 
 
 
-BCP.Est.output = BayesRobustProbitSummary(BCP.output)
+BCP.Est.output = BayesRobustProbitSummary(BCP.output, burnin=0)
+BCP.Est.output
 ```
 We considered two scenarios in the simulations both to verify the estimation method for the parameters in the proposed model and to examine the robustness of our models compared to the models with misspecified correlation matrices.
