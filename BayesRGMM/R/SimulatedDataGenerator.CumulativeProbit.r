@@ -6,10 +6,13 @@
 #' @param Num.of.TimePoints the maximum number of time points among all subjects. 
 #' @param Num.of.Cats the number of categories. 
 #' @param Fixed.Effs a vector of regression coefficients. 
-#' @param Random.Effs a list of covariance matrix and the degree of freedom,  e.g., \code{list(Sigma = 0.5*diag(1), df=3)}. 
+#' @param Random.Effs a list of covariance matrix and the degree of freedom, \cr
+#' e.g., \code{list(Sigma = 0.5*diag(1), df=3)}. 
 #' @param DesignMat a design matrix. 
 #' @param Missing a list of the missing mechanism of observations, 0: data is complete, 1: missing complete at random, 2: missing at random related to responses , and 3: 2: missing at random related to covariates and the corresponding regression coefficients (weights) on the previous observed values either responses or covariates, e.g.,  \code{Missing = list(Missing.Mechanism = 3, RegCoefs = c(0.4, 1.2, -2.1))}. 
-#' @param HSD.DesignMat.para the list of parameters in HSD correlation structure, e.g., \code{HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w)}. 
+#' @param HSD.DesignMat.para the list of parameters in HSD correlation structure, \cr
+#' e.g., \code{HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w)}. 
+#' @param CutPoints the cut points to separate the responses.  
 #'
 #' @return a list containing the following components:
 #' \describe{
@@ -23,12 +26,12 @@
 #' library(BayesRGMM)
 #' rm(list=ls(all=TRUE))
 #' 
-#' Fixed.Effs = c(-0.1, 0.1, -0.1) #c(-0.8, -0.3, 1.8, -0.4) #c(-0.2,-0.8, 1.0, -1.2)
+#' Fixed.Effs = c(-0.1, 0.1, -0.1)  
 #' P = length(Fixed.Effs) 
 #' q = 1 #number of random effects
 #' T = 7 #time points
 #' N = 100 #number of subjects
-#' Num.of.Cats = 3 #in KBLEE simulation studies, please fix it. 
+#' Num.of.Cats = 3 #number of categories 
 #' num.of.iter = 1000 #number of iterations
 #' 
 #' HSD.para = c(-0.9, -0.6) #the parameters in HSD model
@@ -36,7 +39,8 @@
 #' w = array(runif(T*T*a), c(T, T, a)) #design matrix in HSD model
 #'  
 #' for(time.diff in 1:a)
-#' w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) ==time.diff)
+#' w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) 
+#' ==time.diff)
 #' 
 #' 
 #' x = array(0, c(T, P, N))
@@ -49,11 +53,12 @@
 #' DesignMat = x
 #' 
 #' #MAR
-#' CPREM.sim.data = SimulatedDataGenerator.CumulativeProbit(Num.of.Obs = N, 
-#'     Num.of.TimePoints = T, Num.of.Cats = Num.of.Cats, Fixed.Effs = Fixed.Effs, 
-#'     Random.Effs = list(Sigma = 0.5*diag(1), df=3), DesignMat = DesignMat, 
-#'     Missing = list(Missing.Mechanism = 2, MissingRegCoefs=c(-0.7, -0.2, -0.1)), 
-#'     HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
+#' CPREM.sim.data = SimulatedDataGenerator.CumulativeProbit(
+#'  Num.of.Obs = N, Num.of.TimePoints = T, Num.of.Cats = Num.of.Cats, 
+#'  Fixed.Effs = Fixed.Effs, Random.Effs = list(Sigma = 0.5*diag(1), df=3), 
+#'  DesignMat = DesignMat, Missing = list(Missing.Mechanism = 2, 
+#'  MissingRegCoefs=c(-0.7, -0.2, -0.1)), 
+#'  HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
 #' 
 #' 
 #' print(table(CPREM.sim.data$sim.data$y))
@@ -63,7 +68,7 @@
 
 
 SimulatedDataGenerator.CumulativeProbit = function(Num.of.Obs, Num.of.TimePoints, Num.of.Cats, Fixed.Effs, Random.Effs, 
-	DesignMat, Missing, HSD.DesignMat.para)
+	DesignMat, Missing, HSD.DesignMat.para, CutPoints=NULL)
 {
 	P = Num.of.Fixed.Effs = length(Fixed.Effs)
 	q = Num.of.Random.Effs = dim(Random.Effs$Sigma)[1]
@@ -114,7 +119,10 @@ SimulatedDataGenerator.CumulativeProbit = function(Num.of.Obs, Num.of.TimePoints
 		y.star[, i] = x[,, i] %*% beta.true + z[, , i]%*%b[, i, drop=F] + t(rmvnorm(1, rep(0, T), Ri))
 	}
 
-    cut.points = quantile(y.star, seq(0, 1, length=Num.of.Cats+1))
+	if(length(CutPoints)==0)
+    	cut.points = quantile(y.star, seq(0, 1, length=Num.of.Cats+1))
+    else
+    	cut.points = CutPoints
     #seq(range(y.star)[1], range(y.star)[2], length = Num.of.Cats+1)
     #quantile(yy, seq(0, 1, length=4))
 	y = matrix(as.numeric(cut(y.star, cut.points, include.lowest=TRUE)), dim(y.star)) 

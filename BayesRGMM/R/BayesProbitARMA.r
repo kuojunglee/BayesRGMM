@@ -1,4 +1,4 @@
-BayesProbitARMA = function(fixed, data, random, Robustness, subset, na.action, arma.order, hyper.params, num.of.iter)
+BayesProbitARMA = function(fixed, data, random, Robustness, subset, na.action, arma.order, hyper.params, num.of.iter, Interactive)
 {
 
 # process data: reponse, fixed and random effects matrices. 
@@ -150,7 +150,7 @@ BayesProbitARMA = function(fixed, data, random, Robustness, subset, na.action, a
 
 
 
-    PosteriorSamplesARMA = ProbitMCMCARMAKB(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara, ARMAorder)
+    PosteriorSamplesARMA = ProbitMCMCARMAKB(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara, ARMAorder, Interactive)
 
     out <- list(Posterior.Samples = PosteriorSamplesARMA, Fixed.Effects.Names = fixed.eff, Random.Effects.Names = random.eff, 
                 Response = y, Fixed.Effects.Mat = x, Random.Effects.Mat = z, call = cl, Num.of.Iter = num.of.iter)

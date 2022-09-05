@@ -1,4 +1,4 @@
-BayesProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS.model, hyper.params, num.of.iter)
+BayesProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS.model, hyper.params, num.of.iter, Interactive)
 {
 
 # process data: reponse, fixed and random effects matrices. 
@@ -245,7 +245,7 @@ BayesProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS
 
     if(length(hyper.params)==0){
         sigma2.beta = 1
-        sigma2.delta = 1
+        sigma2.delta = rep(1, length(a))
         v.gamma = 5
         InvWishart.df = 5
         InvWishart.Lambda = diag(q)
@@ -305,7 +305,7 @@ BayesProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS
  if(1){  
     start.time <- Sys.time()
 
-    PosteriorSamplesHSD = ProbitMCMCHSD(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara)
+    PosteriorSamplesHSD = ProbitMCMCHSD(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara, Interactive)
 
     end.time <- Sys.time()
 

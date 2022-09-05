@@ -1,22 +1,35 @@
 
-BayesProbitHSD.Summary = function(object, digits = max(1L, getOption("digits") - 4L))
+BayesProbitHSD.Summary = function(object, digits = max(1L, getOption("digits") - 4L), BurnIn)
 {
     
     post.samples = object$Posterior.Samples$PosteriorSamples
 
     para.names = names(post.samples)
 
-    beta.est = matrix(unlist(apply(post.samples$beta.samples, 1, bm)), ncol = 2, byrow=TRUE)
+    beta.est = matrix(unlist(apply(post.samples$beta.samples[, -c(1:BurnIn)], 1, bm)), ncol = 2, byrow=TRUE)
 
     colnames(beta.est) = c("PostMean", "StErr")
     rownames(beta.est) = object$Fixed.Effects.Names
-    beta.CI = apply(post.samples$beta.samples, 1, quantile, c(0.025, 0.975))
+    beta.CI = apply(post.samples$beta.samples[, -c(1:BurnIn)], 1, quantile, c(0.025, 0.975))
 
 
     beta.est.CI = as.data.frame(cbind(beta.est, t(beta.CI)))
 
-    beta.est.CI = format(beta.est.CI, digits = digits)
 
+
+    if(!is.null(post.samples$alpha.samples)){
+        alpha.est = matrix(unlist(apply(post.samples$alpha.samples[, -c(1:BurnIn)], 1, bm)), ncol = 2, byrow=TRUE)
+        alpha.CI = t(apply(post.samples$alpha.samples[, -c(1:BurnIn)], 1, quantile, c(0.025, 0.975)))
+        alpha.est = alpha.est[-c(1, nrow(alpha.est)), ]
+        alpha.CI = alpha.CI[-c(1, nrow(alpha.CI)), ]
+        colnames(alpha.est) = c("PostMean", "StErr")
+        rownames(alpha.est) = paste0("alpha", 1:nrow(alpha.est))
+        alpha.est.CI = as.data.frame(cbind(alpha.est, alpha.CI))
+        beta.est.CI = rbind(beta.est.CI, alpha.est.CI)
+    }
+
+
+    beta.est.CI = format(beta.est.CI, digits = digits)
     #cat("\nCoefficients:\n")
     #print(beta.est.CI)
 
@@ -32,8 +45,8 @@ BayesProbitHSD.Summary = function(object, digits = max(1L, getOption("digits") -
         if(any(HDS.cov.all %in% "1"))
             HSD.cov = c("(Intercept)", HSD.cov)
 
-        delta.est = matrix(unlist(apply(post.samples$delta.samples, 1, bm)), ncol = 2, byrow=TRUE)
-        delta.CI = apply(post.samples$delta.samples, 1, quantile, c(0.025, 0.975))
+        delta.est = matrix(unlist(apply(post.samples$delta.samples[, -c(1:BurnIn), drop=FALSE], 1, bm)), ncol = 2, byrow=TRUE)
+        delta.CI = apply(post.samples$delta.samples[, -c(1:BurnIn), drop=FALSE], 1, quantile, c(0.025, 0.975))
         colnames(delta.est) = c("PostMean", "StErr")
         rownames(delta.est) = HSD.cov
 

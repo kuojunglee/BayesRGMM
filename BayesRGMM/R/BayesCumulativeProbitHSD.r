@@ -12,22 +12,24 @@
 #' It requires an ``integer'' variable named by \samp{id} to denote the identifications of subjects. 
 #' @param random a one-sided linear formula object to describe random-effects with the terms separated by 
 #' \samp{+} or \samp{*} operators on the right of a \samp{~} operator.
-#' @param Robustness logical. If 'TRUE' the distribution of random effects is assumed to be t-distribution; 
-#' otherwise normal distribution. 
+#' @param Robustness logical. If 'TRUE' the distribution of random effects is assumed to be \cr 
+#' t-distribution; otherwise normal distribution. 
 #' @param na.action a function that indicates what should happen when the data contain NA’s. 
-#' The default action (\samp{na.omit}, inherited from the \samp{factory fresh} value of 
+#' The default action (\samp{na.omit}, inherited from the \samp{factory fresh} value of \cr
 #' \samp{getOption("na.action")}) strips any observations with any missing values in any variables.
 #' @param subset an optional expression indicating the subset of the rows of \samp{data} that should be used in the fit. 
 #' This can be a logical vector, or a numeric vector indicating which observation numbers are to be included, 
 #' or a character vector of the row names to be included.  All observations are included by default.
-#' @param HS.model a specification of the correlation structure in HSD model: \code{HS.model = ~0} denotes 
-#' independence, that is, \eqn{R_i} is an identity matrix,  
-#' \code{HS.model = ~IndTime+}\eqn{\cdots}\code{+IndTimer} denotes AR(r) correlation structure, 
-#' \code{HS.model = ~DiffTime1+}\eqn{\cdots}\code{+DiffTimer} denotes correlation structure related to \eqn{r}th order 
+#' @param HS.model a specification of the correlation structure in HSD model: 
+#' \itemize{
+#'   \item \code{HS.model = ~0} denotes independence, that is, \eqn{R_i} is an identity matrix, 
+#'   \item \code{HS.model = ~IndTime+}\eqn{\cdots}\code{+IndTimer} denotes AR(r) correlation structure, 
+#'   \item \code{HS.model = ~DiffTime1+}\eqn{\cdots}\code{+DiffTimer} denotes correlation structure related to \eqn{r}th order 
 #' of time difference. 
+#' }
 #' @param hyper.params specify the values in hyperparameters in priors. 
 #' @param num.of.iter an integer to specify the total number of iterations; default is 20000.      
-#'
+#' @param Interactive logical. If 'TRUE' when the program is being run interactively for progress bar and 'FALSE' otherwise.
 #' @return a list of posterior samples, parameters estimates, AIC, BIC, CIC, DIC, MPL, RJR, predicted values, 
 #' and the acceptance rates in MH are returned.
 #'
@@ -48,7 +50,7 @@
 #' library(BayesRGMM)
 #' rm(list=ls(all=TRUE))
 #' 
-#' Fixed.Effs = c(-0.1, 0.1, -0.1) #c(-0.8, -0.3, 1.8, -0.4) #c(-0.2,-0.8, 1.0, -1.2)
+#' Fixed.Effs = c(-0.1, 0.1, -0.1) #c(-0.8, -0.3, 1.8, -0.4) 
 #' P = length(Fixed.Effs) 
 #' q = 1 #number of random effects
 #' T = 7 #time points
@@ -77,11 +79,12 @@
 #' 
 #' 
 #' #MAR
-#' CPREM.sim.data = SimulatedDataGenerator.CumulativeProbit(Num.of.Obs = N, 
-#'     Num.of.TimePoints = T, Num.of.Cats = Num.of.Cats, Fixed.Effs = Fixed.Effs, 
-#'     Random.Effs = list(Sigma = 0.5*diag(1), df=3), DesignMat = DesignMat, 
-#'     Missing = list(Missing.Mechanism = 2, MissingRegCoefs=c(-0.7, -0.2, -0.1)), 
-#'     HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
+#' CPREM.sim.data = SimulatedDataGenerator.CumulativeProbit(
+#'  Num.of.Obs = N, Num.of.TimePoints = T, Num.of.Cats = Num.of.Cats, 
+#'  Fixed.Effs = Fixed.Effs, Random.Effs = list(Sigma = 0.5*diag(1), df=3), 
+#'  DesignMat = DesignMat, Missing = list(Missing.Mechanism = 2, 
+#'  MissingRegCoefs=c(-0.7, -0.2, -0.1)), 
+#'  HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
 #' 
 #' print(table(CPREM.sim.data$sim.data$y))
 #' print(CPREM.sim.data$classes)
@@ -90,14 +93,14 @@
 #'     fixed = as.formula(paste("y~", paste0("x", 1:P, collapse="+"))), 
 #'     data=CPREM.sim.data$sim.data, random = ~ 1, Robustness = TRUE, 
 #'     subset = NULL, na.action='na.exclude', HS.model = ~IndTime1+IndTime2, 
-#'     hyper.params=NULL, num.of.iter=num.of.iter)
+#'     hyper.params=NULL, num.of.iter=num.of.iter, Interactive=0)
 #' 
 #' BCP.Est.output = BayesRobustProbitSummary(BCP.output)
 #' }
 
 
 
-BayesCumulativeProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS.model, hyper.params, num.of.iter)
+BayesCumulativeProbitHSD = function(fixed, data, random, Robustness, subset, na.action, HS.model, hyper.params, num.of.iter, Interactive)
 {
 
 # process data: reponse, fixed and random effects matrices. 
@@ -321,7 +324,7 @@ BayesCumulativeProbitHSD = function(fixed, data, random, Robustness, subset, na.
     #cat("delta.num = ", delta.num, "\n")
     #cat("=============== 6 ============\n")
     if(a != delta.num)
-        stop("Something wrong to assing the design matrix in HSD model.\n")
+        stop("Something wrong to specify the design matrix in HSD model.\n")
     if(any(HS.model.cov==1)){
         a = a+1
         u = abind(array(1, c(T, T, N)), u, along=4)
@@ -433,7 +436,7 @@ BayesCumulativeProbitHSD = function(fixed, data, random, Robustness, subset, na.
  if(1){  
     start.time <- Sys.time()
 
-    PosteriorSamplesCP = CumulativeProbitMCMC(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara)
+    PosteriorSamplesCP = CumulativeProbitMCMC(num.of.iter, Data, Robustness, InitialValues, HyperPara, UpdatePara, TuningPara, Interactive)
 
     end.time <- Sys.time()
 
