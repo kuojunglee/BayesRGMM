@@ -21,7 +21,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
-ProbitMLModelSelectionARMAKB::ProbitMLModelSelectionARMAKB(int iNum_of_iterations, List list_Data, bool b_Robustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara, vec vARMA_Order)
+ProbitMLModelSelectionARMAKB::ProbitMLModelSelectionARMAKB(int iNum_of_iterations, List list_Data, bool b_Robustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara, vec vARMA_Order, bool b_Interactive)
 {
     Num_of_iterations = iNum_of_iterations;
     Data = list_Data;
@@ -30,6 +30,7 @@ ProbitMLModelSelectionARMAKB::ProbitMLModelSelectionARMAKB(int iNum_of_iteration
     UpdatePara = list_UpdatePara;
     TuningPara = list_TuningPara;
     Robustness = b_Robustness;
+    Interactive = b_Interactive;
     
     phi_tune = as<double>(TuningPara["TuningPhi"]);
     psi_tune = as<double>(TuningPara["TuningPsi"]);
@@ -130,6 +131,15 @@ ProbitMLModelSelectionARMAKB::ProbitMLModelSelectionARMAKB(int iNum_of_iteration
 
     acc_phi_rate = 0.;
     acc_psi_rate = 0.;
+    
+    AIC = 0.;
+    BIC = 0.;
+    CIC = 0.;
+    DIC = 0.;
+    MPL = 0.;
+    logL =0.;
+    RJ_R = 0.;
+    ACC = 0.; 
 }
 
 
@@ -364,7 +374,7 @@ void ProbitMLModelSelectionARMAKB::Update_phi(int iter)
                 phi_cand = mvnrnd(phi_samples.slice(iter).col(i), phi_tune*eye(ARMA_Order(0),ARMA_Order(0)));
                 //phi_cand =  phi_samples(i, iter)+0.01*(2*randu()-1);
             }
-            while(abs(as_scalar(phi_cand))>1);
+            while(fabs(as_scalar(phi_cand))>1);
         }
         else{
             do{
@@ -372,7 +382,7 @@ void ProbitMLModelSelectionARMAKB::Update_phi(int iter)
                 phi_cand = mvnrnd(phi_samples.slice(iter).col(i), phi_tune*eye(ARMA_Order(0),ARMA_Order(0)));
                 //bool_phi = (sum(phi_cand)<1) && (as_scalar(diff(phi_cand)<1)) && (abs(phi_cand(1))<1);
             }
-            while((sum(phi_cand)>1) || (as_scalar(diff(phi_cand)>1)) || (abs(phi_cand(1))>1));
+            while((sum(phi_cand)>1) || (as_scalar(diff(phi_cand)>1)) || (fabs(phi_cand(1))>1));
         }
         
         tp = TimePointsAvailable(i);
@@ -422,7 +432,7 @@ void ProbitMLModelSelectionARMAKB::Update_psi(int iter)
                 psi_cand = mvnrnd(psi_samples.slice(iter).col(i), psi_tune*eye(ARMA_Order(1),ARMA_Order(1)));
                 //phi_cand =  phi_samples(i, iter)+0.01*(2*randu()-1);
             }
-            while(abs(as_scalar(psi_cand))>1);
+            while(fabs(as_scalar(psi_cand))>1);
         }
         else{
             do{
@@ -430,7 +440,7 @@ void ProbitMLModelSelectionARMAKB::Update_psi(int iter)
                 psi_cand = mvnrnd(psi_samples.slice(iter).col(i), psi_tune*eye(ARMA_Order(1),ARMA_Order(1)));
                 //bool_phi = (sum(phi_cand)<1) && (as_scalar(diff(phi_cand)<1)) && (abs(phi_cand(1))<1);
             }
-            while((sum(psi_cand)>1) || (as_scalar(diff(psi_cand)>1)) || (abs(psi_cand(1))>1));
+            while((sum(psi_cand)>1) || (as_scalar(diff(psi_cand)>1)) || (fabs(psi_cand(1))>1));
         }
 
         
@@ -613,7 +623,8 @@ void ProbitMLModelSelectionARMAKB::ParameterEstimation()
 
     rowvec X_tmp, Z_tmp;
     //vec mu_tmp;
-    double pit, CPO_tmp, ESS=0, GP=0, ESS_GP_tmp, RJ1, RJ2;
+    double pit, CPO_tmp, ESS_GP_tmp, RJ1, RJ2;
+    double ESS=0., GP=0.;
     logL = 0.;
     
     mat Djt(Num_of_Timepoints, Num_of_covariates, fill::zeros);
@@ -773,7 +784,7 @@ SEXP ProbitMLModelSelectionARMAKB::MCMC_Procedure()
         iter++;
 
         
-        if(percent%2==0){
+        if(percent%2==0 && Interactive){
             Rcout << "\r" <<  "[" << std::string(percent / 2, (char)61) << std::string(100 / 2 - percent / 2, ' ') << "]" << "\t" << percent << "%";
             //Rcout << percent << "%" << " [Iteration " << iter + 1 << " of " << Num_of_iterations << "]";
             Rcout.flush();

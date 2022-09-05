@@ -9,7 +9,7 @@
 
 
 // [[Rcpp::export]]
-RcppExport SEXP ProbitMCMCHSD(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara)
+RcppExport SEXP ProbitMCMCHSD(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara, SEXP logic_Interactive)
 {
     List lData(list_Data);
     List lInitialValues(list_InitialValues);
@@ -17,11 +17,12 @@ RcppExport SEXP ProbitMCMCHSD(SEXP i_Num_of_iterations, SEXP list_Data, SEXP log
     List lUpdatePara(list_UpdatePara);
     List lTuningPara(list_TuningPara);
     bool bRobustness = Rcpp::as<bool> (logic_Robust);
+    bool bInteractive = Rcpp::as<bool> (logic_Interactive);
     List PosteriorSamples;
     
     int iNum_of_iterations = Rcpp::as<int> (i_Num_of_iterations);
     
-    ProbitMLModelSelection DoMLModelSelectionMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lTuningPara);
+    ProbitMLModelSelection DoMLModelSelectionMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lTuningPara, bInteractive);
     
     PosteriorSamples = DoMLModelSelectionMCMC.MCMC_Procedure();
     
@@ -32,7 +33,7 @@ RcppExport SEXP ProbitMCMCHSD(SEXP i_Num_of_iterations, SEXP list_Data, SEXP log
 
 
 // [[Rcpp::export]]
-RcppExport SEXP ProbitMCMCARMAKB(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara, SEXP ARMA_Order)
+RcppExport SEXP ProbitMCMCARMAKB(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara, SEXP ARMA_Order, SEXP logic_Interactive)
 {
     List lData(list_Data);
     List lInitialValues(list_InitialValues);
@@ -40,6 +41,7 @@ RcppExport SEXP ProbitMCMCARMAKB(SEXP i_Num_of_iterations, SEXP list_Data, SEXP 
     List lUpdatePara(list_UpdatePara);
     List lUpdateTuningPara(list_TuningPara);
     bool bRobustness = Rcpp::as<bool> (logic_Robust);
+    bool bInteractive = Rcpp::as<bool> (logic_Interactive);
     
     List PosteriorSamples;
     
@@ -47,7 +49,7 @@ RcppExport SEXP ProbitMCMCARMAKB(SEXP i_Num_of_iterations, SEXP list_Data, SEXP 
     
     vec vARMA_Order = as<vec>(ARMA_Order);
     
-    ProbitMLModelSelectionARMAKB DoMLModelSelectionMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lUpdateTuningPara, vARMA_Order);
+    ProbitMLModelSelectionARMAKB DoMLModelSelectionMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lUpdateTuningPara, vARMA_Order, bInteractive);
     
     PosteriorSamples = DoMLModelSelectionMCMC.MCMC_Procedure();
     
@@ -58,7 +60,7 @@ RcppExport SEXP ProbitMCMCARMAKB(SEXP i_Num_of_iterations, SEXP list_Data, SEXP 
 
 
 // [[Rcpp::export]]
-RcppExport SEXP CumulativeProbitMCMC(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara)
+RcppExport SEXP CumulativeProbitMCMC(SEXP i_Num_of_iterations, SEXP list_Data, SEXP logic_Robust, SEXP list_InitialValues, SEXP list_HyperPara, SEXP list_UpdatePara, SEXP list_TuningPara, SEXP logic_Interactive)
 {
     List lData(list_Data);
     List lInitialValues(list_InitialValues);
@@ -66,12 +68,13 @@ RcppExport SEXP CumulativeProbitMCMC(SEXP i_Num_of_iterations, SEXP list_Data, S
     List lUpdatePara(list_UpdatePara);
     List lTuningPara(list_TuningPara);
     bool bRobustness = Rcpp::as<bool> (logic_Robust);
+    bool bInteractive = Rcpp::as<bool> (logic_Interactive);
     
     List PosteriorSamples;
     
     int iNum_of_iterations = Rcpp::as<int> (i_Num_of_iterations);
     
-    CumulativeProbitModel DoCumulativeProbitMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lTuningPara);
+    CumulativeProbitModel DoCumulativeProbitMCMC(iNum_of_iterations, lData, bRobustness, lInitialValues, lHyperPara, lUpdatePara, lTuningPara, bInteractive);
     
     PosteriorSamples = DoCumulativeProbitMCMC.MCMC_Procedure();
     

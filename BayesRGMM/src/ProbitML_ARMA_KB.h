@@ -11,6 +11,8 @@
 //#include <math.h>
 
 #include <stdio.h>
+#include <unistd.h>   // for isatty()
+#include <exception>
 //#include <algorithm>
 //#include <assert.h>
 #include <cmath>
@@ -21,7 +23,7 @@
 #include <iostream>
 #include <iomanip>
 //#include <list>
-//#include <limits>
+#include <limits>
 #include <vector>
 #include <string>
 //#include <sstream>
@@ -69,7 +71,7 @@ private:
     double acc_phi_rate, acc_psi_rate;
     
     bool updateystar, updateb, updatenu, updatebeta, updateSigma, updatephi, updatepsi; //, updateomega;
-    bool SinglePhiPsi, Robustness; 
+    bool SinglePhiPsi, Robustness, Interactive;
     //bool Unconstraint;
     
     double AIC, BIC, CIC, DIC, MPL, logL, RJ_R, ACC;// MSPE;
@@ -77,7 +79,7 @@ private:
     //vec lower, upper;
     
 public:
-    ProbitMLModelSelectionARMAKB(int iNum_of_iterations, List list_Data, bool bRobustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara, vec vARMA_Order);
+    ProbitMLModelSelectionARMAKB(int iNum_of_iterations, List list_Data, bool bRobustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara, vec vARMA_Order, bool bInteractive);
     
     void Update_ystar_b_nu_beta_Sigma(int iter);
 

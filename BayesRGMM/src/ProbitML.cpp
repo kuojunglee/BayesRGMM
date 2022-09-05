@@ -11,6 +11,8 @@
 #include "ProbitML.h"
 //#include "tmvrnormGibbs.h"
 #include "tmvrnormGibbs_KJLEE.h"
+
+
 //RNGScope scope;
 //#include <RcppArmadilloExtensions/sample.h>
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -21,7 +23,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
-ProbitMLModelSelection::ProbitMLModelSelection(int iNum_of_iterations, List list_Data, bool b_Robustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara)
+ProbitMLModelSelection::ProbitMLModelSelection(int iNum_of_iterations, List list_Data, bool b_Robustness, List list_InitialValues, List list_HyperPara, List list_UpdatePara, List list_TuningPara, bool b_Interactive)
 {
     //Rcout<< "Read Data 0" << endl;
     Num_of_iterations = iNum_of_iterations;
@@ -31,6 +33,7 @@ ProbitMLModelSelection::ProbitMLModelSelection(int iNum_of_iterations, List list
     UpdatePara = list_UpdatePara;
     TuningPara = list_TuningPara;
     Robustness = b_Robustness;
+    Interactive = b_Interactive;
     
     updateystar = as<bool>(UpdatePara["UpdateYstar"]);
     updateb = as<bool>(UpdatePara["UpdateRandomEffect"]);
@@ -49,6 +52,15 @@ ProbitMLModelSelection::ProbitMLModelSelection(int iNum_of_iterations, List list
     Num_of_RanEffs = Z.n_cols;
     Num_of_covariates = X.n_cols;
     
+    Num_of_deltas = 0;
+    U.reset();
+    UU.reset();
+    delta_samples.reset();
+    delta_mean.reset();
+    sigma2_delta = 1.;
+    tuning_delta = 1.;
+    Idelta_diag.reset();
+    acc_rate_delta = 0;
  
     if(updatedelta){
         //Rcout << "updatedelta" << endl;
@@ -122,6 +134,15 @@ ProbitMLModelSelection::ProbitMLModelSelection(int iNum_of_iterations, List list
     
     
     Ib_diag.eye(Num_of_RanEffs, Num_of_RanEffs);
+    
+    AIC = 0.;
+    BIC = 0.;
+    CIC = 0.;
+    DIC = 0.;
+    MPL = 0.;
+    logL =0.;
+    RJ_R = 0.;
+    ACC = 0.; 
     
 }
 
@@ -353,7 +374,7 @@ void ProbitMLModelSelection::ParameterEstimation()
 
     rowvec X_tmp, Z_tmp, Ri_tmp;
 
-    double pit, CPO_tmp, ESS=0, GP=0, ESS_GP_tmp, RJ1, RJ2;
+    double pit, CPO_tmp, ESS_GP_tmp, RJ1, RJ2, ESS=0., GP=0.;
     logL = 0.;
     mat Djt(Num_of_Timepoints, Num_of_covariates, fill::zeros);
     mat Omega_I(Num_of_covariates, Num_of_covariates, fill::zeros), M_LZ(Num_of_covariates, Num_of_covariates, fill::zeros);
@@ -518,12 +539,11 @@ SEXP ProbitMLModelSelection::MCMC_Procedure()
         iter++;
 
         
-        if(percent%2==0){
+        if(percent%2==0 && Interactive){
             Rcout << "\r" <<  "[" << std::string(percent / 2, (char)61) << std::string(100 / 2 - percent / 2, ' ') << "]" << "\t" << percent << "%";
             //Rcout << percent << "%" << " [Iteration " << iter + 1 << " of " << Num_of_iterations << "]";
             Rcout.flush();
         }
-         
 
     }
     Rcout << endl << "Finish MCMC Procedure." << endl;

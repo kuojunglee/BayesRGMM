@@ -80,3 +80,62 @@ mat rtmvnorm_gibbs_KJLEE(int n, vec mean_vec, mat sigma, vec lower, vec upper, i
 }
 
 
+
+
+static double const log2pi = std::log(2.0 * M_PI);
+
+arma::vec Mahalanobis(arma::mat const &x,
+                      arma::vec const &center,
+                      arma::mat const &cov) {
+    arma::mat x_cen = x.t();
+    x_cen.each_col() -= center;
+    arma::solve(x_cen, arma::trimatl(chol(cov).t()), x_cen);
+    x_cen.for_each( [](arma::mat::elem_type& val) { val = val * val; } );
+    return arma::sum(x_cen, 0).t();
+}
+
+
+arma::vec dmvnorm_arma(arma::mat const &x,
+                       arma::vec const &mean,
+                       arma::mat const &sigma,
+                       bool const logd = FALSE) {
+    arma::vec const distval = Mahalanobis(x,  mean, sigma);
+    double const logdet = sum(arma::log(arma::eig_sym(sigma)));
+    arma::vec const logretval =
+      -( (x.n_cols * log2pi + logdet + distval)/2  ) ;
+    
+    if (logd)
+        return logretval;
+    return exp(logretval);
+}
+
+
+
+double cpp_tmvnorm_prob(vec l, vec u, vec m, mat S, int N){
+  int p = S.n_cols;
+  mat L(p, p, fill::zeros);
+  L = chol(S, "lower");
+  vec pr(N, fill::zeros);
+  for(int i =0; i<N; ++i){
+    vec v(p, fill::zeros);
+    double p_i = 1;
+    for(int j = 0; j < p; ++j){
+      if(j==0){
+        double a_j = (l(j) - m(j))/L(j,j);
+        double b_j = (u(j) - m(j))/L(j,j);
+        v(j) = R::qnorm((R::pnorm(b_j, 0, 1, 1, 0) - R::pnorm(a_j, 0, 1, 1, 0))*randu() + R::pnorm(a_j, 0, 1, 1, 0), 0, 1, 1, 0);
+        p_i = p_i*(R::pnorm(b_j, 0, 1, 1, 0) - R::pnorm(a_j, 0, 1, 1, 0));
+      } else {
+        vec x = (L.row(j)).t();
+        double a_j = (l(j) - m(j) - sum(x.subvec(0, j-1)%v.subvec(0, j-1)))/L(j,j);
+        double b_j = (u(j) - m(j) - sum(x.subvec(0, j-1)%v.subvec(0, j-1)))/L(j,j);
+        v(j) = R::qnorm((R::pnorm(b_j, 0, 1, 1, 0) - R::pnorm(a_j, 0, 1, 1, 0))*randu() + R::pnorm(a_j, 0, 1, 1, 0), 0, 1, 1, 0);
+        p_i = p_i*(R::pnorm(b_j, 0, 1, 1, 0) - R::pnorm(a_j, 0, 1, 1, 0));
+      }
+    }
+    pr(i) = p_i;
+  }
+  return mean(pr);
+}
+
+
