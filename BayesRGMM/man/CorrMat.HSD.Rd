@@ -15,7 +15,8 @@ CorrMat.HSD(w, delta)
 a correlation matrix
 }
 \description{
-The correlation matrix is reparameterized via hyperspherical coordinates angle parameters for trigonometric functions,
+The correlation matrix is reparameterized via hyperspherical coordinates angle parameters for \cr
+trigonometric functions,
 and the angle parameters are referred to hypersphere (HS) parameters. In order to obtain the unconstrained estimation
 of angle parameters and to reduce the number of parameters for facilitating the computation,
 we model the correlation structures of the responses in terms of the generalized linear models

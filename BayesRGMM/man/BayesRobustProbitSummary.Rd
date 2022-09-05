@@ -34,13 +34,15 @@ a = length(HSD.para)
 w = array(runif(T*T*a), c(T, T, a)) #design matrix in HSD model
 
 for(time.diff in 1:a)
-	w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) ==time.diff)
+	w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) 
+ == time.diff)
 
 #Generate a data with HSD model
 HSD.sim.data = SimulatedDataGenerator(Num.of.Obs = N, Num.of.TimePoints = T, 
 Fixed.Effs = Fixed.Effs, Random.Effs = list(Sigma = 0.5*diag(1), df=3), 
-Cor.in.DesignMat = 0., Missing = list(Missing.Mechanism = 2, RegCoefs = c(-1.5, 1.2)), 
-Cor.Str = "HSD", HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
+Cor.in.DesignMat = 0., Missing = list(Missing.Mechanism = 2, 
+ RegCoefs = c(-1.5, 1.2)), Cor.Str = "HSD", 
+HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
 
 hyper.params = list(
         sigma2.beta = 1,
@@ -49,9 +51,11 @@ hyper.params = list(
         InvWishart.df = 5,
         InvWishart.Lambda = diag(q) )
 
-HSD.output = BayesRobustProbit(fixed = as.formula(paste("y~-1+", paste0("x", 1:P, collapse="+"))), 
-	data=HSD.sim.data$sim.data, random = ~ 1, HS.model = ~IndTime1+IndTime2, subset = NULL, 
-	na.action='na.exclude', hyper.params = hyper.params, num.of.iter = num.of.iter)
+HSD.output = BayesRobustProbit(
+ fixed = as.formula(paste("y~-1+", paste0("x", 1:P, collapse="+"))), 
+	data=HSD.sim.data$sim.data, random = ~ 1, Robustness=TRUE, 
+ HS.model = ~IndTime1+IndTime2, subset = NULL, na.action='na.exclude', 
+ hyper.params = hyper.params, num.of.iter = num.of.iter, Interactive =0)
 
 BayesRobustProbitSummary(HSD.output)
 }

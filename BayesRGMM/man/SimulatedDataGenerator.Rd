@@ -23,7 +23,8 @@ SimulatedDataGenerator(
 
 \item{Fixed.Effs}{a vector of regression coefficients.}
 
-\item{Random.Effs}{a list of covariance matrix and the degree of freedom,  e.g., \code{list(Sigma = 0.5*diag(1), df=3)}.}
+\item{Random.Effs}{a list of covariance matrix and the degree of freedom, \cr
+e.g., \code{list(Sigma = 0.5*diag(1), df=3)}.}
 
 \item{Cor.in.DesignMat}{the correlation of covariates in the design matrix.}
 
@@ -31,7 +32,8 @@ SimulatedDataGenerator(
 
 \item{Cor.Str}{the model for correlation structure, \verb{ARMA'' or }HSD''.}
 
-\item{HSD.DesignMat.para}{if \code{Cor.Str="HSD"}, you need to specify the list of parameters in HSD correlation structure, e.g., \code{HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w)}.}
+\item{HSD.DesignMat.para}{if \code{Cor.Str="HSD"}, you need to specify the list of parameters in HSD correlation structure, \cr
+e.g., \code{HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w)}.}
 
 \item{ARMA.para}{if \code{Cor.Str="ARMA"}, you need to specify the list of parameters in AMRA correlation structure, e.g., \code{ARMA.para = list(AR.para=0.1, MA.para=0.2)}.}
 }
@@ -51,7 +53,7 @@ This function is used to generate simulated data for simulation studies with ARM
 \dontrun{
 library(BayesRGMM)
 rm(list=ls(all=TRUE))
-Fixed.Effs = c(-0.2, -0.3, 0.8, -0.4) #c(-0.2,-0.8, 1.0, -1.2)
+Fixed.Effs = c(-0.2, -0.3, 0.8, -0.4) 
 P = length(Fixed.Effs) 
 q = 1 #number of random effects
 T = 5 #time points
@@ -62,22 +64,26 @@ a = length(HSD.para)
 w = array(runif(T*T*a), c(T, T, a)) #design matrix in HSD model
 
 for(time.diff in 1:a)
-	w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) ==time.diff)
+	w[, , time.diff] = 1*(as.matrix(dist(1:T, 1:T, method="manhattan")) 
+ ==time.diff)
 
 #Generate a data with HSD model
 HSD.sim.data = SimulatedDataGenerator(Num.of.Obs = N, Num.of.TimePoints = T, 
 Fixed.Effs = Fixed.Effs, Random.Effs = list(Sigma = 0.5*diag(1), df=3), 
-Cor.in.DesignMat = 0., Missing = list(Missing.Mechanism = 2, RegCoefs = c(-1.5, 1.2)), 
-Cor.Str = "HSD", HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
+Cor.in.DesignMat = 0., Missing = list(Missing.Mechanism = 2, 
+ RegCoefs = c(-1.5, 1.2)), Cor.Str = "HSD", 
+ HSD.DesignMat.para = list(HSD.para = HSD.para, DesignMat = w))
 
 #the proportion of 1's
-print(sum(HSD.sim.data$sim.data$y==1, na.rm=T)/sum(!is.na(HSD.sim.data$sim.data$y))) 
+ones = sum(HSD.sim.data$sim.data$y==1, na.rm=T)
+num.of.obs = sum(!is.na(HSD.sim.data$sim.data$y))
+print(ones/num.of.obs) 
 
 #the missing rate in the simulated data 
 print(sum(is.na(HSD.sim.data$sim.data$y)))
 
 
-#=====================================================================================#
+#===========================================================================#
 #Generate a data with ARMA model
 ARMA.sim.data = SimulatedDataGenerator(Num.of.Obs = N, Num.of.TimePoints = T, 
 	Fixed.Effs = Fixed.Effs, Random.Effs = list(Sigma = 0.5*diag(1), df=3), 
